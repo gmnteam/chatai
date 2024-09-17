@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chat</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 400px;
+      max-width: 100%;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-header {
+      text-align: center;
+      font-size: 24px;
+      color: #333;
+    }
+
+    .chat-box {
+      height: 300px;
+      background: #eaf6ff;
+      border-radius: 8px;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      padding: 10px;
+      background-color: #0084ff;
+      color: white;
+      border-radius: 8px;
+      align-self: flex-start;
+      max-width: 70%;
+    }
+
+    .response {
+      padding: 10px;
+      background-color: #f1f0f0;
+      color: #333;
+      border-radius: 8px;
+      align-self: flex-end;
+      max-width: 70%;
+    }
+
+    #chat-input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: calc(100% - 60px);
+    }
+
+    #send-btn {
+      padding: 10px;
+      background-color: #0084ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 50px;
+    }
+
+    #send-btn:hover {
+      background-color: #006bb3;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h1>AI Chat</h1>
+    </div>
+    <div id="chat-box" class="chat-box"></div>
+    <div class="chat-input-container">
+      <input type="text" id="chat-input" placeholder="Type your message..." />
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const apiUrl = 'https://geminiapi.my.id/';
+
+    // Function to generate a random user or get from localStorage
+    const getUser = () => {
+      let user = localStorage.getItem('randomUser');
+      if (!user) {
+        user = `randomUser${Math.floor(Math.random() * 1000)}`;
+        localStorage.setItem('randomUser', user);
+      }
+      return user;
+    }
+
+    const appendMessage = (message, type = 'message') => {
+      const div = document.createElement('div');
+      div.classList.add(type);
+      div.innerText = message;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    const sendMessage = async () => {
+      const message = chatInput.value.trim();
+      if (message === '') return;
+
+      appendMessage(message, 'message');
+      chatInput.value = '';
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: encodeURIComponent(message),
+            user: getUser()
+          })
+        });
+        
+        const result = await response.json();
+        appendMessage(result.reply, 'response');
+      } catch (error) {
+        appendMessage('Error connecting to the API.', 'response');
+        console.error(error);
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+  </script>
+</body>
+</html>
